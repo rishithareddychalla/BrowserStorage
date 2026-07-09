@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StorageVault QuickView</title>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- HEADER -->
+    <header class="popup-header">
+      <div class="brand">
+        <img src="../icons/icon32.png" alt="StorageVault Logo" class="brand-logo">
+        <span class="brand-name">StorageVault</span>
+      </div>
+      <button class="btn-dashboard" id="btn-open-dashboard" title="Open Advanced Dashboard">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+      </button>
+    </header>
+
+    <!-- CONNECTED SITE BLOCK -->
+    <div class="site-connection-box">
+      <div class="site-meta">
+        <img src="" alt="" class="site-favicon hidden" id="site-favicon">
+        <div class="site-details">
+          <span class="site-domain" id="site-domain">Loading...</span>
+          <span class="site-status" id="site-status">Connecting to tab...</span>
+        </div>
+      </div>
+      <button class="btn btn-icon" id="btn-popup-refresh" title="Refresh">
+        <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      </button>
+    </div>
+
+    <!-- STATS OVERVIEW -->
+    <div class="stats-overview">
+      <div class="stat-row">
+        <div class="stat-box">
+          <span class="stat-lbl">Total Items</span>
+          <span class="stat-val" id="stat-total-count">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-lbl">Total Size</span>
+          <span class="stat-val" id="stat-total-size">0 Bytes</span>
+        </div>
+      </div>
+
+      <!-- Segmented Bar Meter -->
+      <div class="segmented-bar-wrapper">
+        <div class="segmented-bar">
+          <div class="seg-fill seg-local" id="seg-local" style="width: 0%" title="LocalStorage"></div>
+          <div class="seg-fill seg-session" id="seg-session" style="width: 0%" title="SessionStorage"></div>
+          <div class="seg-fill seg-cookie" id="seg-cookie" style="width: 0%" title="Cookies"></div>
+        </div>
+        <div class="segmented-labels">
+          <span class="seg-lbl-item"><span class="seg-lbl-dot seg-local"></span> LS</span>
+          <span class="seg-lbl-item"><span class="seg-lbl-dot seg-session"></span> SS</span>
+          <span class="seg-lbl-item"><span class="seg-lbl-dot seg-cookie"></span> Cookie</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH & ACTION BAR -->
+    <div class="search-action-row">
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" class="input" id="popup-search" placeholder="Filter keys or values...">
+      </div>
+      <button class="btn btn-primary" id="btn-popup-add" title="Quick Add Key">+</button>
+    </div>
+
+    <!-- RECENT / FILTERED ITEMS LIST -->
+    <div class="items-list-container">
+      <div class="list-header">
+        <span id="list-title">Active storage entries</span>
+      </div>
+      <ul class="items-list" id="items-list">
+        <!-- Rendered dynamically -->
+      </ul>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="popup-footer">
+      <button class="btn btn-full-width" id="btn-dashboard-main">Open Advanced Dashboard</button>
+    </footer>
+  </div>
+
+  <script src="../shared/utils.js"></script>
+  <script src="../shared/theme.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

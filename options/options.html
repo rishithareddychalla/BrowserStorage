@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StorageVault - Developer Dashboard</title>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="../icons/icon32.png" alt="StorageVault Logo" class="brand-logo">
+        <div class="brand-info">
+          <span class="brand-name">StorageVault</span>
+          <span class="brand-version">v1.0.0</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="menu-item active" data-target="panel-dashboard">
+          <svg class="menu-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19,5v2h-4V5H19 M9,5v6H5V5H9 M19,13v6h-4v-6H19 M9,17v2H5v-2H9 M21,3h-8v6h8V3L21,3z M11,3H3v10h8V3L11,3z M21,11h-8v10h8V11L21,11z M11,15H3v6h8V15L11,15z"/></svg>
+          Dashboard
+        </button>
+        <button class="menu-item" data-target="panel-explorer">
+          <svg class="menu-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+          Storage Explorer
+        </button>
+        <button class="menu-item" data-target="panel-analytics">
+          <svg class="menu-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M11 2v20c-5.07-.5-9-4.79-9-10s3.93-9.5 9-10zm2.03 0v8.99H22c-.47-4.74-4.24-8.52-8.97-8.99zm0 11.01V22c4.74-.47 8.5-4.25 8.97-8.99h-8.97z"/></svg>
+          Analytics
+        </button>
+        <button class="menu-item" data-target="panel-security">
+          <svg class="menu-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v2h-2V7zm0 4h2v6h-2v-6z"/></svg>
+          Security Scanner
+          <span class="security-alert-dot hidden"></span>
+        </button>
+        <button class="menu-item" data-target="panel-snapshots">
+          <svg class="menu-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+          Snapshots
+        </button>
+        <button class="menu-item" data-target="panel-settings">
+          <svg class="menu-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          Settings
+        </button>
+      </nav>
+
+      <div class="sidebar-status-box">
+        <div class="status-header">Connected Tab</div>
+        <div class="connected-tab-info">
+          <img src="" alt="" class="tab-favicon hidden" id="status-favicon">
+          <div class="tab-details">
+            <span class="tab-title" id="status-tab-title">No Active Page</span>
+            <span class="tab-url" id="status-tab-url">Open a web tab to inspect</span>
+          </div>
+        </div>
+        <div class="quota-meter">
+          <div class="quota-labels">
+            <span>Quota Used</span>
+            <span id="quota-value">0 Bytes / 5 MB</span>
+          </div>
+          <div class="quota-bar-bg">
+            <div class="quota-bar-fill" id="status-quota-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER CONTENT AREA -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="content-header">
+        <div class="header-left">
+          <h1 id="panel-title">Dashboard</h1>
+          <div class="connected-badge" id="connection-status-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-text" id="connection-status-text">Disconnected</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-icon" id="btn-refresh" title="Refresh storage data">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          </button>
+          <button class="btn btn-primary" id="btn-add-item">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Add New Item
+          </button>
+        </div>
+      </header>
+
+      <!-- PANELS (Toggled dynamically) -->
+      <div class="panels-container">
+        
+        <!-- PANEL: DASHBOARD -->
+        <section class="panel active" id="panel-dashboard">
+          <div class="dashboard-grid">
+            <!-- Metrics Cards -->
+            <div class="metrics-container">
+              <div class="metric-card card-local">
+                <div class="metric-header">
+                  <span class="metric-title">Local Storage</span>
+                  <span class="badge badge-local">LS</span>
+                </div>
+                <div class="metric-body">
+                  <span class="metric-value counter animate-counter" id="dash-local-count">0</span>
+                  <span class="metric-sub" id="dash-local-size">0 Bytes</span>
+                </div>
+              </div>
+              <div class="metric-card card-session">
+                <div class="metric-header">
+                  <span class="metric-title">Session Storage</span>
+                  <span class="badge badge-session">SS</span>
+                </div>
+                <div class="metric-body">
+                  <span class="metric-value counter animate-counter" id="dash-session-count">0</span>
+                  <span class="metric-sub" id="dash-session-size">0 Bytes</span>
+                </div>
+              </div>
+              <div class="metric-card card-cookies">
+                <div class="metric-header">
+                  <span class="metric-title">Cookies</span>
+                  <span class="badge badge-cookie">Cookie</span>
+                </div>
+                <div class="metric-body">
+                  <span class="metric-value counter animate-counter" id="dash-cookie-count">0</span>
+                  <span class="metric-sub" id="dash-cookie-size">0 Bytes</span>
+                </div>
+              </div>
+              <div class="metric-card card-total">
+                <div class="metric-header">
+                  <span class="metric-title">Total Size</span>
+                  <span class="badge badge-total">Total</span>
+                </div>
+                <div class="metric-body">
+                  <span class="metric-value" id="dash-total-size">0 Bytes</span>
+                  <span class="metric-sub truncate" id="dash-largest-item-lbl">Largest: None</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Heatmap and Storage Gauge Row -->
+            <div class="dashboard-charts-row">
+              <div class="card chart-card flex-2">
+                <div class="card-header">
+                  <h3>Storage Heatmap</h3>
+                  <p class="card-desc">Visual memory map. Tile opacity reflects item size.</p>
+                </div>
+                <div class="card-body heatmap-container" id="dash-heatmap">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+              <div class="card chart-card flex-1">
+                <div class="card-header">
+                  <h3>Quota Capacity</h3>
+                  <p class="card-desc">Calculated space against browser limits.</p>
+                </div>
+                <div class="card-body gauge-container" id="dash-quota-gauge">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Cleanup and Health suggestions -->
+            <div class="dashboard-suggestions-row">
+              <div class="card health-card flex-1">
+                <div class="card-header">
+                  <h3>Storage Health Check</h3>
+                  <div class="health-header-right">
+                    <span class="health-grade-badge" id="dash-health-grade">-</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="health-gauge-row">
+                    <div class="health-progress-bg">
+                      <div class="health-progress-fill" id="dash-health-fill" style="width: 0%"></div>
+                    </div>
+                    <span class="health-score-val" id="dash-health-score">100 / 100</span>
+                  </div>
+                  <div class="health-suggestions-list" id="dash-health-suggestions">
+                    <!-- Suggestions will populate here -->
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card duplicate-keys-card flex-1">
+                <div class="card-header">
+                  <h3>Storage Cleanup Suggestions</h3>
+                  <button class="btn btn-xs" id="btn-quick-cleanup">One-click Cleanup</button>
+                </div>
+                <div class="card-body">
+                  <div class="cleanup-suggestions-container" id="dash-cleanup-list">
+                    <!-- Cleanup hints populate here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PANEL: STORAGE EXPLORER -->
+        <section class="panel" id="panel-explorer">
+          <!-- Filter Actions Bar -->
+          <div class="explorer-filter-bar">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              <input type="text" class="input" id="explorer-search" placeholder="Search keys, values, size, or type (Instant Search)...">
+              <button class="clear-search-btn hidden" id="btn-clear-search">&times;</button>
+            </div>
+            
+            <div class="filters-group">
+              <select class="input select-filter" id="explorer-filter-type">
+                <option value="all">All Storage Types</option>
+                <option value="localStorage">LocalStorage</option>
+                <option value="sessionStorage">SessionStorage</option>
+                <option value="cookie">Cookies</option>
+                <option value="large">Large Items (> 10KB)</option>
+                <option value="recent">Recently Modified</option>
+              </select>
+
+              <select class="input select-filter" id="explorer-sort-by">
+                <option value="name-asc">Sort: Key A-Z</option>
+                <option value="name-desc">Sort: Key Z-A</option>
+                <option value="type-asc">Sort: Storage Type</option>
+                <option value="size-desc">Sort: Size (Largest First)</option>
+                <option value="size-asc">Sort: Size (Smallest First)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Explorer Quick Actions -->
+          <div class="explorer-quick-actions">
+            <span class="items-count-indicator" id="explorer-items-count">Showing 0 items</span>
+            <div class="quick-buttons">
+              <button class="btn btn-sm" id="btn-export-all">Export Visible</button>
+              <button class="btn btn-sm" id="btn-clear-all-storage" style="border-color: var(--color-danger); color: var(--color-danger)">Clear Visible</button>
+            </div>
+          </div>
+
+          <!-- Explorer Table -->
+          <div class="explorer-table-container">
+            <table class="explorer-table" id="explorer-table">
+              <thead>
+                <tr>
+                  <th style="width: 140px;">Type</th>
+                  <th>Key</th>
+                  <th>Value</th>
+                  <th style="width: 120px; text-align: right;">Approx Size</th>
+                  <th style="width: 150px;">Last Modified</th>
+                </tr>
+              </thead>
+              <tbody id="explorer-table-body">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- PANEL: ANALYTICS -->
+        <section class="panel" id="panel-analytics">
+          <div class="analytics-grid">
+            <div class="analytics-row-1">
+              <div class="card chart-card flex-1">
+                <div class="card-header">
+                  <h3>Storage Type Distribution</h3>
+                  <p class="card-desc">Proportion of key counts across storage structures.</p>
+                </div>
+                <div class="card-body donut-chart-wrapper" id="analytics-donut">
+                  <!-- Dynamic SVG -->
+                </div>
+              </div>
+
+              <div class="card health-card flex-1">
+                <div class="card-header">
+                  <h3>Developer Console Diagnostics</h3>
+                </div>
+                <div class="card-body diag-body">
+                  <div class="diag-score-container">
+                    <span class="diag-score-title">Health Score</span>
+                    <span class="diag-score-value" id="analytics-health-score">100</span>
+                    <div class="health-risk-meter">
+                      <span class="risk-label">Risk Rating:</span>
+                      <span class="risk-value badge" id="analytics-risk-badge">Low Risk</span>
+                    </div>
+                  </div>
+                  <div class="diag-stats-list">
+                    <div class="diag-stat-row">
+                      <span>Duplicate Value Entries</span>
+                      <strong id="diag-dups-count">0</strong>
+                    </div>
+                    <div class="diag-stat-row">
+                      <span>Unused/Draft Keys</span>
+                      <strong id="diag-unused-count">0</strong>
+                    </div>
+                    <div class="diag-stat-row">
+                      <span>Security Concerns</span>
+                      <strong id="diag-security-count" class="txt-danger">0</strong>
+                    </div>
+                    <div class="diag-stat-row">
+                      <span>Cookie Quota Load</span>
+                      <strong id="diag-cookie-count">0 / 180</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="analytics-row-2">
+              <div class="card chart-card w-full">
+                <div class="card-header">
+                  <h3>Top 10 Largest Storage Entries</h3>
+                  <p class="card-desc">Detailed key sizes sorting for memory optimization.</p>
+                </div>
+                <div class="card-body bar-chart-container" id="analytics-bars">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+            
+            <div class="analytics-row-3">
+              <div class="card chart-card w-full">
+                <div class="card-header">
+                  <h3>Storage Growth History</h3>
+                  <p class="card-desc">Monitors addition, deletion, and modification counts during active session.</p>
+                </div>
+                <div class="card-body">
+                  <div class="timeline-container" id="analytics-timeline">
+                    <!-- Timeline diagram -->
+                    <div class="timeline-placeholder">
+                      <div class="timeline-grid" id="timeline-chart-grid"></div>
+                      <div class="timeline-legend">
+                        <span class="legend-item"><span class="legend-color" style="background: var(--color-success)"></span> Added</span>
+                        <span class="legend-item"><span class="legend-color" style="background: var(--color-brand)"></span> Modified</span>
+                        <span class="legend-item"><span class="legend-color" style="background: var(--color-danger)"></span> Deleted</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PANEL: SECURITY SCANNER -->
+        <section class="panel" id="panel-security">
+          <div class="security-dashboard-container">
+            <div class="security-intro-card">
+              <div class="shield-icon-wrapper">
+                <svg class="shield-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+              </div>
+              <div class="security-intro-text">
+                <h2>Security Scanner</h2>
+                <p>Scans web storage keys and values for common API keys, bearer tokens, passwords, and private secrets. Exposing private configuration keys in client-side storage opens vulnerabilities to Cross-Site Scripting (XSS) extraction attacks.</p>
+              </div>
+            </div>
+
+            <div class="security-summary-bar">
+              <div class="sec-stat">
+                <span class="sec-stat-num critical" id="sec-count-critical">0</span>
+                <span class="sec-stat-label">Critical Risks</span>
+              </div>
+              <div class="sec-stat">
+                <span class="sec-stat-num high" id="sec-count-high">0</span>
+                <span class="sec-stat-label">High Risks</span>
+              </div>
+              <div class="sec-stat">
+                <span class="sec-stat-num medium" id="sec-count-medium">0</span>
+                <span class="sec-stat-label">Medium Risks</span>
+              </div>
+              <div class="sec-stat">
+                <span class="sec-stat-num info" id="sec-count-info">0</span>
+                <span class="sec-stat-label">Info Advisories</span>
+              </div>
+            </div>
+
+            <div class="security-results-list" id="security-results-list">
+              <!-- Security findings populate here -->
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" width="48" height="48"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                <h3>Scan Completed</h3>
+                <p>No storage security threats identified on this page context.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PANEL: SNAPSHOTS -->
+        <section class="panel" id="panel-snapshots">
+          <div class="snapshots-container">
+            <div class="snapshots-actions-bar">
+              <div class="input-group">
+                <input type="text" class="input" id="snapshot-label-input" placeholder="Snapshot Description (e.g., Before Login Flow)...">
+                <button class="btn btn-primary" id="btn-take-snapshot">Take Snapshot</button>
+              </div>
+            </div>
+
+            <div class="snapshots-split-layout">
+              <!-- Left side: Snapshot List -->
+              <div class="card snapshots-list-card">
+                <div class="card-header">
+                  <h3>Storage Snapshots</h3>
+                </div>
+                <div class="card-body">
+                  <div class="snapshots-list" id="snapshots-list">
+                    <!-- Dynamic Snapshots list -->
+                    <div class="empty-state-small">No snapshots taken yet.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right side: Comparison View -->
+              <div class="card snapshot-comparison-card">
+                <div class="card-header">
+                  <h3>Snapshot Comparison</h3>
+                  <div class="comparison-selectors" id="comparison-controls">
+                    <select class="input input-sm" id="select-snap-base">
+                      <option value="">Select Base Snapshot</option>
+                    </select>
+                    <span>vs</span>
+                    <select class="input input-sm" id="select-snap-compare">
+                      <option value="">Select Compare Snapshot</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary" id="btn-compare-snaps">Compare</button>
+                  </div>
+                </div>
+                <div class="card-body comparison-results" id="snapshot-comparison-results">
+                  <div class="empty-state">
+                    <svg viewBox="0 0 24 24" width="48" height="48"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM12 6h5v2h-5zm0 3h5v2h-5zm0 3h5v2h-5zm-5-6h3v8H7z"/></svg>
+                    <h3>Compare Snapshots</h3>
+                    <p>Select two snapshots to analyze added, modified, or deleted storage keys between developer test sequences.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PANEL: SETTINGS -->
+        <section class="panel" id="panel-settings">
+          <div class="card settings-card">
+            <div class="card-header">
+              <h3>Preferences & Configuration</h3>
+              <p class="card-desc">Configure StorageVault workspace options.</p>
+            </div>
+            <div class="card-body">
+              <div class="setting-option">
+                <div class="setting-info">
+                  <label for="theme-select" class="setting-label">Visual Theme Mode</label>
+                  <span class="setting-desc">Switch dashboard style between Light, Dark, or System Sync.</span>
+                </div>
+                <div class="setting-input">
+                  <select class="input" id="theme-select">
+                    <option value="system">Sync with System Preference</option>
+                    <option value="dark">Obsidian Dark Theme</option>
+                    <option value="light">Crisp Light Theme</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="setting-option">
+                <div class="setting-info">
+                  <span class="setting-label">Live Sync & Auto Refresh</span>
+                  <span class="setting-desc">Instantly render storage changes as they occur on the web tab.</span>
+                </div>
+                <div class="setting-input">
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="setting-live-sync" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting-option" id="setting-poll-frequency-row">
+                <div class="setting-info">
+                  <label for="setting-poll-interval" class="setting-label">Polling Refresh Timing</label>
+                  <span class="setting-desc">Check frequency (ms) for storage syncing if live events are blocked.</span>
+                </div>
+                <div class="setting-input">
+                  <input type="number" class="input" id="setting-poll-interval" min="500" max="10000" step="500" value="1000">
+                </div>
+              </div>
+
+              <div class="setting-option">
+                <div class="setting-info">
+                  <span class="setting-label">Storage Exclusions & Filter Rules</span>
+                  <span class="setting-desc">Ignore specific cookies or keys from explorer lists. (Comma separated)</span>
+                </div>
+                <div class="setting-input">
+                  <input type="text" class="input" id="setting-exclusions" placeholder="e.g., _ga, _gid, token">
+                </div>
+              </div>
+
+              <div class="setting-danger-zone">
+                <h4>System Maintenance Zone</h4>
+                <p>Warning: Clearing data is permanent and affects storage keys inside the active tab context.</p>
+                <div class="danger-buttons">
+                  <button class="btn" id="btn-purge-local-snapshots" style="color: var(--color-warning); border-color: var(--color-warning);">Purge Snapshot Storage</button>
+                  <button class="btn btn-danger" id="btn-wipe-all-tab-storage" style="background: var(--color-danger); color: white; border-color: var(--color-danger);">Wipe Active Tab Storage</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- RIGHT STORAGE INSPECTOR SIDE-PANEL -->
+    <aside class="detail-panel" id="detail-drawer">
+      <div class="detail-header">
+        <div class="detail-title-wrapper">
+          <span class="badge badge-local" id="detail-type-badge">LS</span>
+          <h2 class="detail-key-name truncate" id="detail-key-display">Selected Key</h2>
+        </div>
+        <button class="detail-close-btn" id="btn-close-detail">&times;</button>
+      </div>
+
+      <div class="detail-actions-bar">
+        <button class="btn btn-sm btn-icon-label" id="btn-detail-copy-val">
+          <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0-2-.9-2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          Copy Value
+        </button>
+        <button class="btn btn-sm btn-icon-label" id="btn-detail-export">
+          <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+          Export File
+        </button>
+        <button class="btn btn-sm btn-icon-label btn-danger-action" id="btn-detail-delete" style="color: var(--color-danger); border-color: var(--color-danger);">
+          <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          Delete
+        </button>
+      </div>
+
+      <!-- Detail Metadata Stats -->
+      <div class="detail-stats-grid">
+        <div class="detail-stat-tile">
+          <span class="tile-label">Character Length</span>
+          <span class="tile-value" id="detail-stat-chars">0</span>
+        </div>
+        <div class="detail-stat-tile">
+          <span class="tile-label">Estimated Memory</span>
+          <span class="tile-value" id="detail-stat-size">0 Bytes</span>
+        </div>
+      </div>
+
+      <!-- Security / Insights alert -->
+      <div class="detail-alerts-container" id="detail-alerts">
+        <!-- Inside details alert banners go here -->
+      </div>
+
+      <!-- Detail Tabs -->
+      <div class="detail-tab-buttons-bar">
+        <button class="detail-tab-btn active" data-tab="tab-raw">Raw Editor</button>
+        <button class="detail-tab-btn hidden" data-tab="tab-json" id="btn-tab-json">JSON Tree</button>
+        <button class="detail-tab-btn hidden" data-tab="tab-jwt" id="btn-tab-jwt">JWT Decode</button>
+        <button class="detail-tab-btn hidden" data-tab="tab-base64" id="btn-tab-base64">Base64 Decode</button>
+      </div>
+
+      <div class="detail-tab-contents">
+        <!-- RAW VALUE / EDITOR -->
+        <div class="detail-tab-panel active" id="tab-raw">
+          <div class="editor-header">
+            <span class="editor-title">Modify Value String</span>
+            <button class="btn btn-xs btn-primary" id="btn-save-raw">Save Changes</button>
+          </div>
+          <textarea class="raw-value-textarea" id="detail-raw-textarea" placeholder="Value text..."></textarea>
+        </div>
+
+        <!-- JSON INTERACTIVE VIEW -->
+        <div class="detail-tab-panel" id="tab-json">
+          <div class="json-tree-actions">
+            <button class="btn btn-xs" id="btn-json-expand">Expand All</button>
+            <button class="btn btn-xs" id="btn-json-collapse">Collapse All</button>
+          </div>
+          <div class="json-tree-viewer-canvas" id="detail-json-tree-container">
+            <!-- Collapsible tree gets injected here -->
+          </div>
+        </div>
+
+        <!-- JWT INTERACTIVE VIEW -->
+        <div class="detail-tab-panel" id="tab-jwt">
+          <div class="jwt-decoder-box">
+            <div class="jwt-sec-header">JWT Header</div>
+            <div class="jwt-tree-wrapper" id="detail-jwt-header-tree"></div>
+            
+            <div class="jwt-sec-header" style="margin-top: 16px;">JWT Payload Claims</div>
+            <div class="jwt-tree-wrapper" id="detail-jwt-payload-tree"></div>
+          </div>
+        </div>
+
+        <!-- BASE64 INTERACTIVE VIEW -->
+        <div class="detail-tab-panel" id="tab-base64">
+          <div class="base64-decoder-box">
+            <div class="editor-header">
+              <span class="editor-title">Decoded Plaintext</span>
+              <button class="btn btn-xs" id="btn-copy-base64-decoded">Copy Decoded</button>
+            </div>
+            <textarea class="raw-value-textarea" id="detail-base64-textarea" readonly></textarea>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- MODAL: ADD / EDIT STORAGE ENTRY -->
+  <div class="modal-overlay hidden" id="modal-add-entry">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title">Add Storage Entry</h3>
+        <button class="modal-close-btn" id="btn-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label for="modal-input-type" class="modal-label">Storage Structure</label>
+          <select class="input" id="modal-input-type">
+            <option value="localStorage">LocalStorage</option>
+            <option value="sessionStorage">SessionStorage</option>
+            <option value="cookie">Cookie</option>
+          </select>
+        </div>
+        
+        <div class="modal-field">
+          <label for="modal-input-key" class="modal-label">Storage Key</label>
+          <input type="text" class="input" id="modal-input-key" placeholder="e.g., user_token">
+        </div>
+        
+        <div class="modal-field">
+          <label for="modal-input-value" class="modal-label">Value (Raw Text or Stringified JSON)</label>
+          <textarea class="input modal-textarea" id="modal-input-value" placeholder="Enter value..."></textarea>
+        </div>
+
+        <!-- Cookie specific parameters -->
+        <div class="modal-cookie-params hidden" id="modal-cookie-params-section">
+          <div class="modal-grid-2">
+            <div class="modal-field">
+              <label for="cookie-input-path" class="modal-label">Cookie Path</label>
+              <input type="text" class="input" id="cookie-input-path" value="/" placeholder="/">
+            </div>
+            <div class="modal-field">
+              <label for="cookie-input-exp" class="modal-label">TTL Expiry (Seconds or blank)</label>
+              <input type="number" class="input" id="cookie-input-exp" placeholder="e.g., 3600">
+            </div>
+          </div>
+          <div class="modal-field-checkbox flex-row">
+            <label class="checkbox-container">
+              <input type="checkbox" id="cookie-input-secure">
+              <span class="checkbox-label">Secure (HTTPS Only)</span>
+            </label>
+            <label class="checkbox-container" style="margin-left: 20px;">
+              <input type="checkbox" id="cookie-input-http">
+              <span class="checkbox-label">HttpOnly (Extensions only)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="btn-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-modal-save">Save Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared code references -->
+  <script src="../shared/utils.js"></script>
+  <script src="../shared/components.js"></script>
+  <script src="../shared/theme.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

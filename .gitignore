@@ -1,0 +1,19 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# Extension builds
+*.zip
+*.crx
+
+# Node dependencies
+node_modules/
+package-lock.json
+
+# Local Python caches
+__pycache__/
+*.pyc
+
+# Local workspace configs
+.vscode/
+.gemini/
