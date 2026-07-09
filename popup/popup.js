@@ -29,6 +29,9 @@ if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.tabs) {
             },
             sessionStorage: {
               'tab_session_id': 'sess_993847291a'
+            },
+            indexedDB: {
+              'AppDatabase :: users_store': '[\n  {\n    "id": 1,\n    "name": "Jane Developer"\n  }\n]'
             }
           });
         } else {
@@ -67,6 +70,7 @@ const els = {
   segLocal: document.getElementById('seg-local'),
   segSession: document.getElementById('seg-session'),
   segCookie: document.getElementById('seg-cookie'),
+  segIndexed: document.getElementById('seg-indexed'),
   
   popupSearch: document.getElementById('popup-search'),
   itemsList: document.getElementById('items-list')
@@ -194,6 +198,18 @@ function mergeStorageData(webStorage, cookies) {
     });
   });
 
+  // IndexedDB
+  if (webStorage.indexedDB) {
+    for (const [key, val] of Object.entries(webStorage.indexedDB)) {
+      merged.push({
+        type: 'indexedDB',
+        key,
+        value: val,
+        size: StorageUtils.getByteSize(val)
+      });
+    }
+  }
+
   popupStorageData = merged;
   renderStats();
   renderItemsList();
@@ -211,16 +227,19 @@ function renderStats() {
   const localSize = popupStorageData.filter(i => i.type === 'localStorage').reduce((a,c) => a + c.size, 0);
   const sessionSize = popupStorageData.filter(i => i.type === 'sessionStorage').reduce((a,c) => a + c.size, 0);
   const cookieSize = popupStorageData.filter(i => i.type === 'cookie').reduce((a,c) => a + c.size, 0);
+  const indexedSize = popupStorageData.filter(i => i.type === 'indexedDB').reduce((a,c) => a + c.size, 0);
 
-  const totalBytes = localSize + sessionSize + cookieSize || 1; // avoid divide by zero
+  const totalBytes = localSize + sessionSize + cookieSize + indexedSize || 1; // avoid divide by zero
 
   const lp = (localSize / totalBytes) * 100;
   const sp = (sessionSize / totalBytes) * 100;
   const cp = (cookieSize / totalBytes) * 100;
+  const ip = (indexedSize / totalBytes) * 100;
 
   els.segLocal.style.width = `${lp}%`;
   els.segSession.style.width = `${sp}%`;
   els.segCookie.style.width = `${cp}%`;
+  els.segIndexed.style.width = `${ip}%`;
 }
 
 // Render search-filtered items in quick list
@@ -251,6 +270,7 @@ function renderItemsList() {
     let badgeClass = 'badge-local';
     if (item.type === 'sessionStorage') { label = 'SS'; badgeClass = 'badge-session'; }
     if (item.type === 'cookie') { label = 'CK'; badgeClass = 'badge-cookie'; }
+    if (item.type === 'indexedDB') { label = 'IDB'; badgeClass = 'badge-indexed'; }
 
     const previewVal = item.value.length > 40 ? item.value.substring(0, 40) + '...' : item.value;
 

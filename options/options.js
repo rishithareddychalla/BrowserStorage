@@ -32,6 +32,10 @@ if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.tabs || !chrome.
             sessionStorage: {
               'tab_session_id': 'sess_993847291a',
               'temp_state': 'debugging_logs' // Duplicate key for cleanup test
+            },
+            indexedDB: {
+              'AppDatabase :: users_store': '[\n  {\n    "id": 1,\n    "name": "Jane Developer",\n    "role": "Lead Architect"\n  },\n  {\n    "id": 2,\n    "name": "Alex Admin",\n    "role": "Systems Operator"\n  }\n]',
+              'AnalyticsCache :: events_v2': '[\n  {\n    "event": "page_view",\n    "timestamp": 1720541100000\n  }\n]'
             }
           });
         } else {
@@ -481,6 +485,7 @@ function fetchAllStorageAreas() {
         resolve({
           localStorage: webStorageResponse.localStorage || {},
           sessionStorage: webStorageResponse.sessionStorage || {},
+          indexedDB: webStorageResponse.indexedDB || {},
           cookies: cookies || []
         });
       });
@@ -553,6 +558,13 @@ function processAndMergeStorage(raw, silentMerge = false) {
     addItem('cookie', c.name, c.value);
   });
 
+  // Parse IndexedDB
+  if (raw.indexedDB) {
+    for (const [key, val] of Object.entries(raw.indexedDB)) {
+      addItem('indexedDB', key, val);
+    }
+  }
+
   // Check for deleted items
   if (storageData.length > 0) {
     storageData.forEach(oldItem => {
@@ -599,15 +611,23 @@ function detectDiffsAndAnimate(newList) {
     if (itemId) rowMap.set(itemId, row);
   });
 
+  let hasChanges = false;
+
   newList.forEach(item => {
     if (!currentMap.has(item.id)) {
       // Item added!
+      hasChanges = true;
       setTimeout(() => animateRow(item.id, 'row-add'), 100);
     } else if (currentMap.get(item.id) !== item.value) {
       // Item modified!
+      hasChanges = true;
       setTimeout(() => animateRow(item.id, 'row-edit'), 100);
     }
   });
+
+  if (newList.length !== storageData.length) {
+    hasChanges = true;
+  }
 
   // Helper to add classes
   function animateRow(id, className) {
@@ -620,9 +640,11 @@ function detectDiffsAndAnimate(newList) {
   }
 
   // If changes found, redraw analytical metrics silently
-  renderDashboard();
-  renderAnalytics();
-  renderSecurityScan();
+  if (hasChanges) {
+    renderDashboard();
+    renderAnalytics();
+    renderSecurityScan();
+  }
 }
 
 // Handle live synchronization events from inject.js
@@ -647,11 +669,13 @@ function renderDashboard() {
   const locals = storageData.filter(i => i.type === 'localStorage');
   const sessions = storageData.filter(i => i.type === 'sessionStorage');
   const cookies = storageData.filter(i => i.type === 'cookie');
+  const indexeds = storageData.filter(i => i.type === 'indexedDB');
 
   const localSize = locals.reduce((acc, curr) => acc + curr.size, 0);
   const sessionSize = sessions.reduce((acc, curr) => acc + curr.size, 0);
   const cookieSize = cookies.reduce((acc, curr) => acc + curr.size, 0);
-  const totalSize = localSize + sessionSize + cookieSize;
+  const indexedSize = indexeds.reduce((acc, curr) => acc + curr.size, 0);
+  const totalSize = localSize + sessionSize + cookieSize + indexedSize;
 
   // Counter animations or text insertion
   els.dashLocalCount.textContent = locals.length;
@@ -801,6 +825,8 @@ function renderExplorerTable() {
     filtered = filtered.filter(i => i.type === 'sessionStorage');
   } else if (filterType === 'cookie') {
     filtered = filtered.filter(i => i.type === 'cookie');
+  } else if (filterType === 'indexedDB') {
+    filtered = filtered.filter(i => i.type === 'indexedDB');
   } else if (filterType === 'large') {
     filtered = filtered.filter(i => i.size > 10 * 1024); // > 10KB
   } else if (filterType === 'recent') {
@@ -862,6 +888,7 @@ function renderExplorerTable() {
     let badgeLabel = 'Local';
     if (item.type === 'sessionStorage') { badgeClass = 'badge-session'; badgeLabel = 'Session'; }
     if (item.type === 'cookie') { badgeClass = 'badge-cookie'; badgeLabel = 'Cookie'; }
+    if (item.type === 'indexedDB') { badgeClass = 'badge-indexed'; badgeLabel = 'IndexedDB'; }
 
     // Estimate relative dates
     const dateFormatted = new Date(item.modified).toLocaleTimeString();
@@ -921,12 +948,14 @@ function renderAnalytics() {
   const locals = storageData.filter(i => i.type === 'localStorage');
   const sessions = storageData.filter(i => i.type === 'sessionStorage');
   const cookies = storageData.filter(i => i.type === 'cookie');
+  const indexeds = storageData.filter(i => i.type === 'indexedDB');
 
   // Type donut data
   const data = [
     { label: 'localStorage', value: locals.length, count: locals.length, color: 'var(--color-local)' },
     { label: 'sessionStorage', value: sessions.length, count: sessions.length, color: 'var(--color-session)' },
-    { label: 'cookie', value: cookies.length, count: cookies.length, color: 'var(--color-cookie)' }
+    { label: 'cookie', value: cookies.length, count: cookies.length, color: 'var(--color-cookie)' },
+    { label: 'indexedDB', value: indexeds.length, count: indexeds.length, color: 'var(--color-indexed)' }
   ];
 
   UIComponents.renderPieChart(els.analyticsDonut, data);
@@ -1308,6 +1337,7 @@ function renderSnapshotDiffResults(diffs) {
 function getBadgeClass(type) {
   if (type === 'localStorage') return 'badge-local';
   if (type === 'sessionStorage') return 'badge-session';
+  if (type === 'indexedDB') return 'badge-indexed';
   return 'badge-cookie';
 }
 
@@ -1490,9 +1520,14 @@ function openInspectorPanel(item) {
   let badgeClass = 'badge-local';
   if (item.type === 'sessionStorage') badgeClass = 'badge-session';
   if (item.type === 'cookie') badgeClass = 'badge-cookie';
+  if (item.type === 'indexedDB') badgeClass = 'badge-indexed';
   
   els.detailTypeBadge.className = `badge ${badgeClass}`;
-  els.detailTypeBadge.textContent = item.type === 'localStorage' ? 'LS' : (item.type === 'sessionStorage' ? 'SS' : 'Cookie');
+  let typeLabel = 'LS';
+  if (item.type === 'sessionStorage') typeLabel = 'SS';
+  else if (item.type === 'cookie') typeLabel = 'Cookie';
+  else if (item.type === 'indexedDB') typeLabel = 'IDB';
+  els.detailTypeBadge.textContent = typeLabel;
   els.detailKeyDisplay.textContent = item.key;
   els.detailKeyDisplay.setAttribute('title', item.key);
 
@@ -1731,17 +1766,20 @@ function initSettings() {
   // Wipe tab storage
   els.btnWipeActiveStorage.onclick = () => {
     if (!activeTabId) return;
-    if (confirm('Wipe ALL web storage (localStorage, sessionStorage) and matching cookies on this webpage? This will log you out and clear active sessions.')) {
+    if (confirm('Wipe ALL web storage (localStorage, sessionStorage, IndexedDB) and matching cookies on this webpage? This will log you out and clear active sessions.')) {
       // Clear localStorage
       chrome.tabs.sendMessage(activeTabId, { type: 'CLEAR_STORAGE', storageType: 'localStorage' }, () => {
         // Clear sessionStorage
         chrome.tabs.sendMessage(activeTabId, { type: 'CLEAR_STORAGE', storageType: 'sessionStorage' }, () => {
-          // Clear cookies
-          storageData.filter(i => i.type === 'cookie').forEach(c => {
-            deleteStorageItem('cookie', c.key);
+          // Clear IndexedDB
+          chrome.tabs.sendMessage(activeTabId, { type: 'CLEAR_STORAGE', storageType: 'indexedDB' }, () => {
+            // Clear cookies
+            storageData.filter(i => i.type === 'cookie').forEach(c => {
+              deleteStorageItem('cookie', c.key);
+            });
+            alert('Web page storage completely wiped.');
+            refreshData();
           });
-          alert('Web page storage completely wiped.');
-          refreshData();
         });
       });
     }

@@ -167,6 +167,7 @@ body {
 .seg-local { background-color: var(--color-local); }
 .seg-session { background-color: var(--color-session); }
 .seg-cookie { background-color: var(--color-cookie); }
+.seg-indexed { background-color: var(--color-indexed); }
 
 .segmented-labels {
   display: flex;
