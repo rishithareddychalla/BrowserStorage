@@ -1,12 +1,5 @@
-// Inject the MAIN world script to hook storage methods
-try {
-  const script = document.createElement('script');
-  script.src = chrome.runtime.getURL('inject.js');
-  (document.head || document.documentElement).appendChild(script);
-  script.onload = () => script.remove();
-} catch (e) {
-  console.error('[StorageVault] Failed to inject storage interceptor:', e);
-}
+// The MAIN world script (inject.js) is injected natively by the extension manifest,
+// which avoids cross-origin/unique security origin warnings on file:/// pages.
 
 // Forward storage changes from MAIN world to the extension
 window.addEventListener('__storage_vault_change__', (event) => {
@@ -178,6 +171,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       } catch (e) {
         sendResponse({ success: false, error: e.message });
       }
+      return false;
     }
   } 
 
@@ -229,6 +223,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       } catch (e) {
         sendResponse({ success: false, error: e.message });
       }
+      return false;
     }
   } 
   
@@ -264,8 +259,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       } catch (e) {
         sendResponse({ success: false, error: e.message });
       }
+      return false;
     }
   }
 
-  return true;
+  return false;
 });

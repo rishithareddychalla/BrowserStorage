@@ -309,6 +309,7 @@ const UIComponents = {
       let typeClass = 'bar-type-local';
       if (item.type === 'sessionStorage') typeClass = 'bar-type-session';
       if (item.type === 'cookie') typeClass = 'bar-type-cookie';
+      if (item.type === 'indexedDB') typeClass = 'bar-type-indexed';
 
       barWrapper.innerHTML = `
         <div class="bar-info">
@@ -363,6 +364,7 @@ const UIComponents = {
       let baseColor = 'rgba(59, 130, 246, ';
       if (item.type === 'sessionStorage') baseColor = 'rgba(16, 185, 129, ';
       if (item.type === 'cookie') baseColor = 'rgba(249, 115, 22, ';
+      if (item.type === 'indexedDB') baseColor = 'rgba(168, 85, 247, ';
       
       // Min opacity of 0.2, max 1.0
       const opacity = 0.2 + intensity * 0.8;

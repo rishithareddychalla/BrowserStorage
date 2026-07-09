@@ -909,6 +909,7 @@
 .bar-type-local { background-color: var(--color-local); }
 .bar-type-session { background-color: var(--color-session); }
 .bar-type-cookie { background-color: var(--color-cookie); }
+.bar-type-indexed { background-color: var(--color-indexed); }
 
 /* Growth history timeline */
 .timeline-placeholder {

@@ -80,11 +80,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Query active tab
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
-    if (tab && tab.url && (tab.url.startsWith('http://') || tab.url.startsWith('https://'))) {
+    if (tab && tab.url && (tab.url.startsWith('http://') || tab.url.startsWith('https://') || tab.url.startsWith('file://'))) {
       activeTabId = tab.id;
       activeTabUrl = tab.url;
       
-      const domain = new URL(tab.url).hostname;
+      const domain = new URL(tab.url).hostname || 'local-file';
       els.siteDomain.textContent = domain;
       els.siteStatus.textContent = 'Connected';
       
@@ -137,13 +137,20 @@ function fetchData() {
         if (chrome.runtime.lastError) {
           showConnectionError();
         } else {
-          // Try messaging again
-          chrome.tabs.sendMessage(activeTabId, { type: 'GET_PAGE_STORAGE' }, (res) => {
-            if (chrome.runtime.lastError || !res || !res.success) {
-              showConnectionError();
-            } else {
-              getCookiesAndMerge(res);
-            }
+          // Inject inject.js into the MAIN world
+          chrome.scripting.executeScript({
+            target: { tabId: activeTabId },
+            files: ['inject.js'],
+            world: 'MAIN'
+          }, () => {
+            // Try messaging again
+            chrome.tabs.sendMessage(activeTabId, { type: 'GET_PAGE_STORAGE' }, (res) => {
+              if (chrome.runtime.lastError || !res || !res.success) {
+                showConnectionError();
+              } else {
+                getCookiesAndMerge(res);
+              }
+            });
           });
         }
       });
@@ -158,54 +165,61 @@ function fetchData() {
   }
 
   function getCookiesAndMerge(webStorageResponse) {
-    chrome.cookies.getAll({ url: activeTabUrl }, (cookies) => {
-      mergeStorageData(webStorageResponse, cookies || []);
-    });
+    if (activeTabUrl.startsWith('file://')) {
+      mergeStorageData(webStorageResponse, []);
+    } else {
+      chrome.cookies.getAll({ url: activeTabUrl }, (cookies) => {
+        mergeStorageData(webStorageResponse, cookies || []);
+      });
+    }
   }
 }
 
-// Format and sort
 function mergeStorageData(webStorage, cookies) {
   const merged = [];
 
   // Local
   for (const [key, val] of Object.entries(webStorage.localStorage || {})) {
+    const stringVal = val !== undefined && val !== null ? String(val) : '';
     merged.push({
       type: 'localStorage',
       key,
-      value: val,
-      size: StorageUtils.getByteSize(val)
+      value: stringVal,
+      size: StorageUtils.getByteSize(stringVal)
     });
   }
 
   // Session
   for (const [key, val] of Object.entries(webStorage.sessionStorage || {})) {
+    const stringVal = val !== undefined && val !== null ? String(val) : '';
     merged.push({
       type: 'sessionStorage',
       key,
-      value: val,
-      size: StorageUtils.getByteSize(val)
+      value: stringVal,
+      size: StorageUtils.getByteSize(stringVal)
     });
   }
 
   // Cookies
   cookies.forEach(c => {
+    const stringVal = c.value !== undefined && c.value !== null ? String(c.value) : '';
     merged.push({
       type: 'cookie',
       key: c.name,
-      value: c.value,
-      size: StorageUtils.getByteSize(c.value)
+      value: stringVal,
+      size: StorageUtils.getByteSize(stringVal)
     });
   });
 
   // IndexedDB
   if (webStorage.indexedDB) {
     for (const [key, val] of Object.entries(webStorage.indexedDB)) {
+      const stringVal = val !== undefined && val !== null ? String(val) : '';
       merged.push({
         type: 'indexedDB',
         key,
-        value: val,
-        size: StorageUtils.getByteSize(val)
+        value: stringVal,
+        size: StorageUtils.getByteSize(stringVal)
       });
     }
   }

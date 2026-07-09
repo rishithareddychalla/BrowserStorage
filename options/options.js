@@ -251,11 +251,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         handleIncomingStorageChange(message.data);
       }
     } else if (message.type === 'COOKIE_CHANGE') {
-      if (activeTabUrl) {
+      if (activeTabUrl && !activeTabUrl.startsWith('file://')) {
         const urlObj = new URL(activeTabUrl);
         const cookieDomain = message.data.cookie.domain;
         // Check if cookie matches active tab host
-        if (urlObj.hostname.includes(cookieDomain.replace(/^\./, ''))) {
+        if (urlObj.hostname && urlObj.hostname.includes(cookieDomain.replace(/^\./, ''))) {
           handleIncomingCookieChange(message.data);
         }
       }
@@ -287,8 +287,7 @@ async function saveMetadataStore() {
 // Render dynamic tabs selector in the Connected Tab box
 async function refreshTabsList() {
   chrome.tabs.query({}, (tabs) => {
-    // Filter inspectable pages (HTTP / HTTPS)
-    const inspectable = tabs.filter(t => t.url && (t.url.startsWith('http://') || t.url.startsWith('https://')));
+    const inspectable = tabs.filter(t => t.url && (t.url.startsWith('http://') || t.url.startsWith('https://') || t.url.startsWith('file://')));
     
     // Create tab selector
     const container = document.querySelector('.connected-tab-info');
@@ -322,7 +321,7 @@ async function refreshTabsList() {
     inspectable.forEach(tab => {
       const opt = document.createElement('option');
       opt.value = tab.id;
-      opt.textContent = `${tab.title.substring(0, 25)}... (${new URL(tab.url).hostname})`;
+      opt.textContent = `${tab.title.substring(0, 25)}... (${new URL(tab.url).hostname || 'local-file'})`;
       opt.style.backgroundColor = 'var(--bg-sidebar)';
       select.appendChild(opt);
     });
@@ -464,13 +463,20 @@ function fetchAllStorageAreas() {
           if (chrome.runtime.lastError) {
             reject(new Error(chrome.runtime.lastError.message));
           } else {
-            // Try again
-            chrome.tabs.sendMessage(activeTabId, { type: 'GET_PAGE_STORAGE' }, (res) => {
-              if (chrome.runtime.lastError || !res || !res.success) {
-                reject(new Error("Content script unreachable"));
-              } else {
-                fetchCookies(res);
-              }
+            // Also inject inject.js into the MAIN world
+            chrome.scripting.executeScript({
+              target: { tabId: activeTabId },
+              files: ['inject.js'],
+              world: 'MAIN'
+            }, () => {
+              // Try again
+              chrome.tabs.sendMessage(activeTabId, { type: 'GET_PAGE_STORAGE' }, (res) => {
+                if (chrome.runtime.lastError || !res || !res.success) {
+                  reject(new Error("Content script unreachable"));
+                } else {
+                  fetchCookies(res);
+                }
+              });
             });
           }
         });
@@ -481,21 +487,30 @@ function fetchAllStorageAreas() {
 
     // Helper: Fetch cookies once Web Storage is fetched
     function fetchCookies(webStorageResponse) {
-      chrome.cookies.getAll({ url: activeTabUrl }, (cookies) => {
+      if (activeTabUrl.startsWith('file://')) {
         resolve({
           localStorage: webStorageResponse.localStorage || {},
           sessionStorage: webStorageResponse.sessionStorage || {},
           indexedDB: webStorageResponse.indexedDB || {},
-          cookies: cookies || []
+          cookies: []
         });
-      });
+      } else {
+        chrome.cookies.getAll({ url: activeTabUrl }, (cookies) => {
+          resolve({
+            localStorage: webStorageResponse.localStorage || {},
+            sessionStorage: webStorageResponse.sessionStorage || {},
+            indexedDB: webStorageResponse.indexedDB || {},
+            cookies: cookies || []
+          });
+        });
+      }
     }
   });
 }
 
 // Convert raw storage responses to unified structures
 function processAndMergeStorage(raw, silentMerge = false) {
-  const domain = new URL(activeTabUrl).hostname;
+  const domain = new URL(activeTabUrl).hostname || 'local-file';
   const newItems = [];
   const exclusions = els.settingExclusions.value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
@@ -505,7 +520,10 @@ function processAndMergeStorage(raw, silentMerge = false) {
     const lowerKey = key.toLowerCase();
     if (exclusions.some(exc => lowerKey.includes(exc))) return;
 
-    const size = StorageUtils.getByteSize(value);
+    // Coerce value to string safely to avoid null/undefined crashes
+    const valString = value !== undefined && value !== null ? String(value) : '';
+
+    const size = StorageUtils.getByteSize(valString);
     const metaKey = `${domain}::${type}::${key}`;
     
     // Creation Time & Last Updated estimates
@@ -518,7 +536,7 @@ function processAndMergeStorage(raw, silentMerge = false) {
       
       // If value changed, update lastModified
       const oldItem = storageData.find(i => i.type === type && i.key === key);
-      if (oldItem && oldItem.value !== value) {
+      if (oldItem && oldItem.value !== valString) {
         lastModified = Date.now();
         metadataStore[metaKey].lastModified = lastModified;
         
@@ -536,7 +554,7 @@ function processAndMergeStorage(raw, silentMerge = false) {
       id: `${type}::${key}`,
       type,
       key,
-      value,
+      value: valString,
       size,
       created: firstSeen,
       modified: lastModified

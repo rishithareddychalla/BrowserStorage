@@ -34,13 +34,26 @@ const StorageUtils = {
     return false;
   },
 
+  // HTML escaping helper
+  escapeHtml: function(str) {
+    if (typeof str !== 'string') return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  },
+
   // Smart Insights Scanner
   scanInsights: function(key, value) {
     const insights = [];
     const lowerKey = key.toLowerCase();
+    const valStr = value !== undefined && value !== null ? String(value) : '';
+    const cleanVal = valStr.trim();
     
     // Check JSON
-    const parsedJSON = this.tryParseJSON(value);
+    const parsedJSON = this.tryParseJSON(valStr);
     if (parsedJSON) {
       insights.push({
         type: 'json',
@@ -52,7 +65,7 @@ const StorageUtils = {
 
     // Check UUID
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (uuidRegex.test(value.trim())) {
+    if (uuidRegex.test(cleanVal)) {
       insights.push({
         type: 'uuid',
         label: 'UUID',
@@ -63,7 +76,7 @@ const StorageUtils = {
 
     // Check JWT
     const jwtRegex = /^ey[a-zA-Z0-9-_]+\.ey[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+$/;
-    if (jwtRegex.test(value.trim())) {
+    if (jwtRegex.test(cleanVal)) {
       insights.push({
         type: 'jwt',
         label: 'JWT Token',
@@ -74,9 +87,9 @@ const StorageUtils = {
 
     // Check Base64 (length at least 8 to avoid false positives, matches valid Base64)
     const base64Regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-    if (value.length >= 8 && base64Regex.test(value.trim()) && !value.includes(' ')) {
+    if (valStr.length >= 8 && base64Regex.test(cleanVal) && !valStr.includes(' ')) {
       // Additional check to avoid plain words being flagged
-      if (/[+/=]/.test(value) || (value.length > 12 && !/^[A-Za-z]+$/.test(value))) {
+      if (/[+/=]/.test(valStr) || (valStr.length > 12 && !/^[A-Za-z]+$/.test(valStr))) {
         insights.push({
           type: 'base64',
           label: 'Base64 Encoded',
@@ -97,7 +110,7 @@ const StorageUtils = {
     }
 
     // Check general API Keys & Long Tokens
-    if ((lowerKey.includes('key') || lowerKey.includes('token') || lowerKey.includes('auth')) && value.length > 20) {
+    if ((lowerKey.includes('key') || lowerKey.includes('token') || lowerKey.includes('auth')) && valStr.length > 20) {
       insights.push({
         type: 'api_key',
         label: 'API/Auth Key',
@@ -113,7 +126,8 @@ const StorageUtils = {
   scanSecurity: function(key, value) {
     const risks = [];
     const lowerKey = key.toLowerCase();
-    const cleanVal = value.trim();
+    const valStr = value !== undefined && value !== null ? String(value) : '';
+    const cleanVal = valStr.trim();
 
     // 1. OpenAI Keys
     if (/^sk-[a-zA-Z0-9]{20,}/.test(cleanVal)) {
@@ -173,7 +187,7 @@ const StorageUtils = {
     }
 
     // 7. JWT check in keys named session/auth
-    if (this.scanInsights(key, value).some(ins => ins.type === 'jwt')) {
+    if (this.scanInsights(key, valStr).some(ins => ins.type === 'jwt')) {
       if (lowerKey.includes('auth') || lowerKey.includes('session') || lowerKey.includes('user')) {
         // JWT is common, but it's good to remind developers not to put sensitive credentials inside it
         risks.push({
@@ -333,8 +347,14 @@ const StorageUtils = {
 
   // Compare two snapshots
   compareSnapshots: function(oldSnap, newSnap) {
-    const oldMap = new Map(oldSnap.items.map(i => [i.type + '::' + i.key, i.value]));
-    const newMap = new Map(newSnap.items.map(i => [i.type + '::' + i.key, i.value]));
+    const oldMap = new Map(oldSnap.items.map(i => [
+      i.type + '::' + i.key,
+      i.value !== undefined && i.value !== null ? String(i.value) : ''
+    ]));
+    const newMap = new Map(newSnap.items.map(i => [
+      i.type + '::' + i.key,
+      i.value !== undefined && i.value !== null ? String(i.value) : ''
+    ]));
 
     const added = [];
     const deleted = [];
@@ -343,11 +363,16 @@ const StorageUtils = {
     // Check for added & modified
     newSnap.items.forEach(item => {
       const compoundKey = item.type + '::' + item.key;
+      const stringVal = item.value !== undefined && item.value !== null ? String(item.value) : '';
       if (!oldMap.has(compoundKey)) {
-        added.push(item);
-      } else if (oldMap.get(compoundKey) !== item.value) {
+        added.push({
+          ...item,
+          value: stringVal
+        });
+      } else if (oldMap.get(compoundKey) !== stringVal) {
         modified.push({
           ...item,
+          value: stringVal,
           oldValue: oldMap.get(compoundKey)
         });
       }
@@ -356,8 +381,12 @@ const StorageUtils = {
     // Check for deleted
     oldSnap.items.forEach(item => {
       const compoundKey = item.type + '::' + item.key;
+      const stringVal = item.value !== undefined && item.value !== null ? String(item.value) : '';
       if (!newMap.has(compoundKey)) {
-        deleted.push(item);
+        deleted.push({
+          ...item,
+          value: stringVal
+        });
       }
     });
 
