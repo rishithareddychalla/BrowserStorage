@@ -1,5 +1,89 @@
 // Options Panel Controller - StorageVault
 
+// Safe mock for non-extension environments (e.g. direct HTML view)
+if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.tabs || !chrome.storage) {
+  window.chrome = {
+    runtime: {
+      onMessage: { addListener: () => {} },
+      sendMessage: (msg, cb) => {
+        if (msg.type === 'GET_COOKIES') cb([]);
+        else if (cb) cb({ success: true });
+      },
+      openOptionsPage: () => console.log('Mock: Open Options Page')
+    },
+    tabs: {
+      query: (query, cb) => {
+        cb([
+          { id: 1, url: 'https://example.com', title: 'Interactive Mock Workspace', active: true, favIconUrl: 'https://www.google.com/s2/favicons?domain=example.com' }
+        ]);
+      },
+      onUpdated: { addListener: () => {} },
+      sendMessage: (id, msg, cb) => {
+        if (msg.type === 'GET_PAGE_STORAGE') {
+          cb({
+            success: true,
+            localStorage: {
+              'user_session_token': 'sk-proj-48charsofdummyopenaiapikeykeyvaluethatislong',
+              'theme_mode': 'dark',
+              'cart_items': '{"items":[{"id":102,"qty":2},{"id":405,"qty":1}]}',
+              'temp_state': 'debugging_logs',
+              'jwt_auth_debug': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+            },
+            sessionStorage: {
+              'tab_session_id': 'sess_993847291a',
+              'temp_state': 'debugging_logs' // Duplicate key for cleanup test
+            }
+          });
+        } else {
+          cb({ success: true });
+        }
+      }
+    },
+    cookies: {
+      getAll: (query, cb) => {
+        cb([
+          { name: '_ga', value: 'GA1.2.192847192.12847291' },
+          { name: 'session_id', value: 'c9f8d9b1e9c8' }
+        ]);
+      }
+    },
+    storage: {
+      local: {
+        get: (keys, cb) => {
+          cb({
+            snapshots: [
+              {
+                id: 'snap-1',
+                label: 'Baseline Clean State',
+                timestamp: Date.now() - 3600000 * 2,
+                items: [
+                  { type: 'localStorage', key: 'theme_mode', value: 'dark', size: 4 },
+                  { type: 'cookie', key: '_ga', value: 'GA1.2.192847192.12847291', size: 24 }
+                ]
+              },
+              {
+                id: 'snap-2',
+                label: 'Post-Auth State',
+                timestamp: Date.now() - 3600000,
+                items: [
+                  { type: 'localStorage', key: 'theme_mode', value: 'dark', size: 4 },
+                  { type: 'cookie', key: '_ga', value: 'GA1.2.192847192.12847291', size: 24 },
+                  { type: 'localStorage', key: 'user_session_token', value: 'sk-proj-48charsofdummyopenaiapikeykeyvaluethatislong', size: 52 }
+                ]
+              }
+            ],
+            metadataStore: {},
+            exclusions: '',
+            liveSync: true,
+            pollInterval: 2000
+          });
+        },
+        set: (obj, cb) => { if (cb) cb(); }
+      }
+    }
+  };
+}
+
 // App state
 let activeTabId = null;
 let activeTabUrl = '';

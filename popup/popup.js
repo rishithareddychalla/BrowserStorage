@@ -1,5 +1,52 @@
 // Popup QuickView Controller - StorageVault
 
+// Safe mock for non-extension environments (e.g. direct HTML view)
+if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.tabs) {
+  window.chrome = {
+    runtime: {
+      onMessage: { addListener: () => {} },
+      sendMessage: (msg, cb) => {
+        if (msg.type === 'GET_COOKIES') cb([]);
+        else if (cb) cb({ success: true });
+      },
+      openOptionsPage: () => window.open('../options/options.html', '_blank')
+    },
+    tabs: {
+      query: (query, cb) => {
+        cb([
+          { id: 1, url: 'https://example.com', title: 'Interactive Mock Workspace', active: true, favIconUrl: 'https://www.google.com/s2/favicons?domain=example.com' }
+        ]);
+      },
+      sendMessage: (id, msg, cb) => {
+        if (msg.type === 'GET_PAGE_STORAGE') {
+          cb({
+            success: true,
+            localStorage: {
+              'user_session_token': 'sk-proj-48charsofdummyopenaiapikeykeyvaluethatislong',
+              'theme_mode': 'dark',
+              'cart_items': '{"items":[{"id":102,"qty":2},{"id":405,"qty":1}]}',
+              'jwt_auth_debug': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+            },
+            sessionStorage: {
+              'tab_session_id': 'sess_993847291a'
+            }
+          });
+        } else {
+          cb({ success: true });
+        }
+      }
+    },
+    cookies: {
+      getAll: (query, cb) => {
+        cb([
+          { name: '_ga', value: 'GA1.2.192847192.12847291' },
+          { name: 'session_id', value: 'c9f8d9b1e9c8' }
+        ]);
+      }
+    }
+  };
+}
+
 let activeTabId = null;
 let activeTabUrl = '';
 let popupStorageData = []; // unified list of items
