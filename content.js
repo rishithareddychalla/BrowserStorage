@@ -3,16 +3,19 @@
 
 // Forward storage changes from MAIN world to the extension
 window.addEventListener('__storage_vault_change__', (event) => {
-  chrome.runtime.sendMessage({
-    type: 'STORAGE_CHANGE',
-    data: event.detail
-  }).catch(() => {
-    // Ignore error when extension popup or options page is not active
-  });
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+    chrome.runtime.sendMessage({
+      type: 'STORAGE_CHANGE',
+      data: event.detail
+    }).catch(() => {
+      // Ignore error when extension popup or options page is not active
+    });
+  }
 });
 
 // Listen for messages from popup / options dashboard
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const { type, storageType, key, value } = message;
 
   if (type === 'GET_PAGE_STORAGE') {
@@ -265,3 +268,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return false;
 });
+}
